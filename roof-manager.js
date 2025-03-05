@@ -12,7 +12,7 @@ function completeDrawing() {
     
     // Show results summary
     document.querySelector('.roof-summary').style.display = 'block';
-    document.getElementById('get-quote-btn').style.display = 'block';
+    document.getElementById('get-quote-btn').style.display = 'block'; 
     
     // Disable drawing
     document.getElementById('drawing-panel').classList.add('completed');

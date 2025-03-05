@@ -90,7 +90,7 @@ function updatePotentialDetails() {
     // Calculate totals
     let totalSystemSize = 0;
     let totalDailyProduction = 0;
-    let totalAnnualProduction = 0;
+    let totalAnnualProduction = 0; 
     let totalCO2Offset = 0;
     
     for (const polygon of polygonAreas) {

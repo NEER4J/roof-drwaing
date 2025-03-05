@@ -7,6 +7,9 @@ let isMapAdjustmentMode = false;
 // Initialize Google Maps// Add this to your map-handler.js file to initialize the map correctly
 
 // Initialize Google Maps
+// Add this to the map-handler.js file to preload the magnifier map
+
+// Modify the initMap function
 function initMap() {
     map = new google.maps.Map(document.getElementById('map-container'), {
         center: { lat: 37.7749, lng: -122.4194 },
@@ -15,13 +18,23 @@ function initMap() {
         tilt: 0
     });
     
-    geocoder = new google.maps.Geocoder();
+    geocoder = new google.maps.Geocoder(); 
     setupDrawingCanvas();
     
-    // Initialize the magnifier map after the main map is ready
+    // Initialize the magnifier map immediately after the main map
     if (typeof initMagnifierMap === 'function') {
+        console.log("Initializing magnifier map");
         initMagnifierMap();
     }
+    
+    // Add a listener for when the map tile loading is complete
+    google.maps.event.addListenerOnce(map, 'tilesloaded', function() {
+        console.log("Main map tiles loaded");
+        // This is a good time to make sure magnifier map is ready
+        if (typeof createMagnifierMap === 'function' && magnifierMap === null) {
+            createMagnifierMap();
+        }
+    });
     
     google.maps.event.addListener(map, 'bounds_changed', function() {
         updateCanvasSize();
@@ -39,6 +52,27 @@ function initMap() {
     document.getElementById('drawing-canvas').style.cursor = 'crosshair';
 }
 
+// Add this code to app.js to ensure the magnifier and canvas are resized correctly when window resizes
+window.addEventListener('resize', function() {
+    if (typeof updateCanvasSize === 'function') {
+        updateCanvasSize();
+    }
+    
+    // Also update magnifier if it exists
+    const magnifierCanvas = document.getElementById('magnifier-canvas');
+    if (magnifierCanvas) {
+        magnifierCanvas.width = 120;
+        magnifierCanvas.height = 120;
+    }
+});
+
+// Add this to handle browser back/forward navigation properly
+window.addEventListener('popstate', function() {
+    // Ensure magnifier is hidden when navigating back/forward
+    if (typeof hideMagnifier === 'function') {
+        hideMagnifier();
+    }
+});
 // Handle address search and geocoding
 function searchAddress() {
     const address = document.getElementById('address-input').value;

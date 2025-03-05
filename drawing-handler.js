@@ -34,32 +34,43 @@ function setupDrawingCanvas() {
     
     // Set up magnifier map
     setupMagnifier();
-}
+} 
 
-// Setup a secondary map for the magnifier
+// Enhanced magnifier implementation for drawing-handler.js
+
+// Enhanced magnifier implementation for drawing-handler.js
+
+// Setup a secondary map for the magnifier with preloading
 function setupMagnifier() {
     // Create a div for the magnifier map
     magnifierDiv = document.createElement('div');
     magnifierDiv.id = 'magnifier-map';
     magnifierDiv.style.position = 'absolute';
-    magnifierDiv.style.width = '120px';
-    magnifierDiv.style.height = '120px';
+    magnifierDiv.style.width = '150px'; // Increased from 120px
+    magnifierDiv.style.height = '150px'; // Increased from 120px
     magnifierDiv.style.borderRadius = '50%';
     magnifierDiv.style.overflow = 'hidden';
     magnifierDiv.style.border = '2px solid white';
-    magnifierDiv.style.boxShadow = '0 0 5px rgba(0,0,0,0.4)';
+    magnifierDiv.style.boxShadow = '0 0 8px rgba(0,0,0,0.5)'; // Enhanced shadow
     magnifierDiv.style.zIndex = '1000';
     magnifierDiv.style.display = 'none';
     magnifierDiv.style.pointerEvents = 'none'; // Make sure it doesn't interfere with mouse events
     
+    // Create a canvas overlay for drawing lines in the magnifier
+    const magnifierCanvas = document.createElement('canvas');
+    magnifierCanvas.id = 'magnifier-canvas';
+    magnifierCanvas.style.position = 'absolute';
+    magnifierCanvas.style.top = '0';
+    magnifierCanvas.style.left = '0';
+    magnifierCanvas.style.width = '100%';
+    magnifierCanvas.style.height = '100%';
+    magnifierCanvas.style.pointerEvents = 'none';
+    magnifierCanvas.style.zIndex = '2'; // Above map but below crosshair
+    magnifierDiv.appendChild(magnifierCanvas);
+    
     // Add to the parent container
     const mapContainer = document.getElementById('map-container').parentElement;
     mapContainer.appendChild(magnifierDiv);
-    
-    // We'll initialize the actual map when we have a valid Google Maps instance
-    if (typeof google !== 'undefined' && google.maps) {
-        initMagnifierMap();
-    }
     
     // Add crosshair to magnifier
     const crosshair = document.createElement('div');
@@ -69,21 +80,21 @@ function setupMagnifier() {
     crosshair.style.left = '50%';
     crosshair.style.transform = 'translate(-50%, -50%)';
     crosshair.style.pointerEvents = 'none';
-    crosshair.style.zIndex = '1001';
+    crosshair.style.zIndex = '3'; // Above canvas
     
     // Create crosshair lines
     const horizontalLine = document.createElement('div');
     horizontalLine.style.position = 'absolute';
-    horizontalLine.style.width = '10px';
-    horizontalLine.style.height = '2px';
-    horizontalLine.style.backgroundColor = 'white';
+    horizontalLine.style.width = '0px';
+    horizontalLine.style.height = '0px';
+    horizontalLine.style.backgroundColor = 'black';
     horizontalLine.style.top = '0';
     horizontalLine.style.left = '-5px';
     
     const verticalLine = document.createElement('div');
     verticalLine.style.position = 'absolute';
-    verticalLine.style.width = '2px';
-    verticalLine.style.height = '10px';
+    verticalLine.style.width = '0px';
+    verticalLine.style.height = '0px';
     verticalLine.style.backgroundColor = 'white';
     verticalLine.style.top = '-5px';
     verticalLine.style.left = '0';
@@ -91,39 +102,95 @@ function setupMagnifier() {
     crosshair.appendChild(horizontalLine);
     crosshair.appendChild(verticalLine);
     magnifierDiv.appendChild(crosshair);
+    
+    // Preload map as soon as possible
+    if (typeof google !== 'undefined' && google.maps) {
+        initMagnifierMap();
+    } else {
+        // If Google Maps isn't loaded yet, set up a check to initialize when it becomes available
+        const checkGoogleMaps = setInterval(() => {
+            if (typeof google !== 'undefined' && google.maps) {
+                initMagnifierMap();
+                clearInterval(checkGoogleMaps);
+            }
+        }, 100);
+    }
 }
 
 // Initialize the magnifier map once Google Maps is ready
 function initMagnifierMap() {
-    if (!magnifierDiv || !map) return;
+    if (!magnifierDiv) return;
     
     try {
-        // Create the magnifier map with higher zoom level
-        magnifierMap = new google.maps.Map(magnifierDiv, {
-            center: map.getCenter(),
-            zoom: map.getZoom() + 3,  // Higher zoom level
-            mapTypeId: 'satellite',
-            disableDefaultUI: true,   // No controls needed
-            draggable: false,
-            zoomControl: false,
-            scrollwheel: false,
-            disableDoubleClickZoom: true
-        });
+        // Create a placeholder div if we need to wait for the main map
+        if (!map) {
+            console.log("Main map not ready yet, creating placeholder for magnifier map");
+            const placeholderDiv = document.createElement('div');
+            placeholderDiv.id = 'magnifier-map-content';
+            placeholderDiv.style.width = '100%';
+            placeholderDiv.style.height = '100%';
+            magnifierDiv.appendChild(placeholderDiv);
+            
+            // We'll initialize properly when the main map is ready
+            const checkMainMap = setInterval(() => {
+                if (map) {
+                    createMagnifierMap();
+                    clearInterval(checkMainMap);
+                }
+            }, 100);
+        } else {
+            createMagnifierMap();
+        }
     } catch (error) {
         console.error("Could not initialize magnifier map:", error);
     }
 }
 
-// Update the magnifier position and content
+// Create the actual magnifier map
+function createMagnifierMap() {
+    // Find or create the content div
+    let mapContentDiv = document.getElementById('magnifier-map-content');
+    if (!mapContentDiv) {
+        mapContentDiv = document.createElement('div');
+        mapContentDiv.id = 'magnifier-map-content';
+        mapContentDiv.style.width = '100%';
+        mapContentDiv.style.height = '100%';
+        magnifierDiv.appendChild(mapContentDiv);
+    }
+    
+    // Create the magnifier map with higher zoom level
+    magnifierMap = new google.maps.Map(mapContentDiv, {
+        center: map.getCenter(),
+        zoom: map.getZoom() + 3,  // Higher zoom level
+        mapTypeId: 'satellite',
+        disableDefaultUI: true,   // No controls needed
+        draggable: false,
+        zoomControl: false,
+        scrollwheel: false,
+        disableDoubleClickZoom: true,
+        tilt: 0  // Ensure top-down view
+    });
+    
+    // Resize the magnifier canvas
+    const magnifierCanvas = document.getElementById('magnifier-canvas');
+    if (magnifierCanvas) {
+        magnifierCanvas.width = 150;
+        magnifierCanvas.height = 150;
+    }
+    
+    console.log("Magnifier map initialized successfully");
+}
+
+// Update the magnifier position, content, and draw the polygon lines
 function updateMagnifier(x, y) {
-    if (!magnifierDiv || !magnifierMap || !map) return;
+    if (!magnifierDiv || !map) return;
     
     // Make sure the magnifier is visible
     magnifierDiv.style.display = 'block';
     
     // Offset the magnifier from the cursor (top-right)
-    const offsetX = 40;
-    const offsetY = -40;
+    const offsetX = -50;
+    const offsetY = 50;
     
     // Position the magnifier div
     magnifierDiv.style.left = (x + offsetX) + 'px';
@@ -133,11 +200,263 @@ function updateMagnifier(x, y) {
     try {
         const point = new google.maps.Point(x, y);
         const latLng = pixelToLatLng(point);
-        if (latLng) {
+        if (latLng && magnifierMap) {
             magnifierMap.setCenter(latLng);
+            
+            // Now draw the polygon lines on the magnifier canvas
+            drawPolygonLinesInMagnifier(x, y);
         }
     } catch (error) {
         console.error("Error updating magnifier position:", error);
+    }
+}
+
+// Draw polygon lines in the magnifier canvas
+function drawPolygonLinesInMagnifier(cursorX, cursorY) {
+    const magnifierCanvas = document.getElementById('magnifier-canvas');
+    if (!magnifierCanvas) return;
+    
+    const ctx = magnifierCanvas.getContext('2d');
+    ctx.clearRect(0, 0, magnifierCanvas.width, magnifierCanvas.height);
+    
+    // Calculate the center of the magnifier
+    const centerX = magnifierCanvas.width / 2;
+    const centerY = magnifierCanvas.height / 2;
+    
+    // Calculate the scale factor between the main canvas and magnifier
+    // The magnifier is zoomed in by 3 levels typically
+    const zoomDifference = magnifierMap ? (magnifierMap.getZoom() - map.getZoom()) : 3;
+    const scaleFactor = Math.pow(2, zoomDifference);
+    
+    // Draw the completed polygons
+    if (polygonAreas && polygonAreas.length > 0) {
+        for (const polygon of polygonAreas) {
+            drawPolygonInMagnifier(ctx, polygon, cursorX, cursorY, centerX, centerY, scaleFactor);
+        }
+    }
+    
+    // Draw the current polygon being drawn
+    if (isDrawing && polygonPoints && polygonPoints.length > 0) {
+        // Choose the color based on currentPolygonColor
+        let strokeColor;
+        if (currentPolygonColor === 'green') {
+            strokeColor = 'rgba(76, 175, 80, 0.8)';
+        } else if (currentPolygonColor === 'purple') {
+            strokeColor = 'rgba(156, 39, 176, 0.8)';
+        } else if (currentPolygonColor === 'orange') {
+            strokeColor = 'rgba(255, 152, 0, 0.8)';
+        } else {
+            strokeColor = 'rgba(33, 150, 243, 0.8)';
+        }
+        
+        // Draw lines connecting the points
+        if (polygonPoints.length > 1) {
+            ctx.beginPath();
+            
+            // Get first point position relative to cursor
+            let relX = polygonPoints[0].x - cursorX;
+            let relY = polygonPoints[0].y - cursorY;
+            
+            // Scale and translate to magnifier center
+            let magnifierX = centerX + (relX * scaleFactor);
+            let magnifierY = centerY + (relY * scaleFactor);
+            
+            ctx.moveTo(magnifierX, magnifierY);
+            
+            // Draw remaining points
+            for (let i = 1; i < polygonPoints.length; i++) {
+                relX = polygonPoints[i].x - cursorX;
+                relY = polygonPoints[i].y - cursorY;
+                magnifierX = centerX + (relX * scaleFactor);
+                magnifierY = centerY + (relY * scaleFactor);
+                ctx.lineTo(magnifierX, magnifierY);
+            }
+            
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 4;
+            ctx.stroke();
+        }
+        
+        // Draw the "rubber band" line from last point to cursor
+        if (polygonPoints.length > 0) {
+            const lastPoint = polygonPoints[polygonPoints.length - 1];
+            const relX = lastPoint.x - cursorX;
+            const relY = lastPoint.y - cursorY;
+            
+            ctx.beginPath();
+            ctx.moveTo(centerX + (relX * scaleFactor), centerY + (relY * scaleFactor));
+            ctx.lineTo(centerX, centerY); // Line to cursor (center of magnifier)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+        }
+        
+        // Draw points in the in-progress polygon
+        for (let i = 0; i < polygonPoints.length; i++) {
+            const relX = polygonPoints[i].x - cursorX;
+            const relY = polygonPoints[i].y - cursorY;
+            const magnifierX = centerX + (relX * scaleFactor);
+            const magnifierY = centerY + (relY * scaleFactor);
+            
+            ctx.beginPath();
+            // Check if it's the first point and we have more than 2 points
+            if (i === 0 && polygonPoints.length > 2) {
+                // Apply a larger radius to reflect the zoom level
+                const pointRadius = 16 * scaleFactor / 8; // Slightly larger based on zoom
+                
+                // Check if hovering over the first point
+                if (isHoveringFirstPoint) {
+                    // Draw check mark icon with larger, highlighted circle
+                    const size = 16 * scaleFactor / 8; // Scale the checkmark size
+                    
+                    // Background circle
+                    ctx.arc(magnifierX, magnifierY, pointRadius + 3, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(76, 175, 80, 0.9)';
+                    ctx.fill();
+                    
+                    // Checkmark
+                    ctx.beginPath();
+                    ctx.moveTo(magnifierX - size/2, magnifierY);
+                    ctx.lineTo(magnifierX - size/6, magnifierY + size/2);
+                    ctx.lineTo(magnifierX + size/2, magnifierY - size/3);
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 2.5;
+                    ctx.stroke();
+                } else {
+                    // Draw a larger, more noticeable first point
+                    ctx.arc(magnifierX, magnifierY, pointRadius, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(76, 175, 80, 0.8)';
+                    ctx.fill();
+                    ctx.lineWidth = 2.5;
+                    ctx.strokeStyle = 'white';
+                    ctx.stroke();
+                }
+            } else {
+                // Regular points - scale based on zoom level
+                const pointRadius = 10 * scaleFactor / 8;
+                ctx.arc(magnifierX, magnifierY, pointRadius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.fill();
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = 'white';
+                ctx.stroke();
+            }
+        }
+    }
+}
+
+// Draw a completed polygon in the magnifier
+function drawPolygonInMagnifier(ctx, polygon, cursorX, cursorY, centerX, centerY, scaleFactor) {
+    if (!polygon || !polygon.points || polygon.points.length < 3) return;
+    
+    // Use the polygon's color
+    const color = polygon.color || 'green';
+    let strokeColor;
+    
+    if (color === 'green') {
+        strokeColor = 'rgba(76, 175, 80, 0.8)';
+    } else if (color === 'purple') {
+        strokeColor = 'rgba(156, 39, 176, 0.8)';
+    } else if (color === 'orange') {
+        strokeColor = 'rgba(255, 152, 0, 0.8)';
+    } else {
+        strokeColor = 'rgba(33, 150, 243, 0.8)';
+    }
+    
+    // Draw the polygon outline
+    ctx.beginPath();
+    
+    // Get first point position relative to cursor
+    let relX = polygon.points[0].x - cursorX;
+    let relY = polygon.points[0].y - cursorY;
+    
+    // Scale and translate to magnifier center
+    let magnifierX = centerX + (relX * scaleFactor);
+    let magnifierY = centerY + (relY * scaleFactor);
+    
+    ctx.moveTo(magnifierX, magnifierY);
+    
+    // Draw remaining points
+    for (let i = 1; i < polygon.points.length; i++) {
+        relX = polygon.points[i].x - cursorX;
+        relY = polygon.points[i].y - cursorY;
+        magnifierX = centerX + (relX * scaleFactor);
+        magnifierY = centerY + (relY * scaleFactor);
+        ctx.lineTo(magnifierX, magnifierY);
+    }
+    
+    ctx.closePath();
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Also draw a transparent fill
+    ctx.fillStyle = strokeColor.replace('0.8', '0.2'); // More transparent version
+    ctx.fill();
+    
+    // Draw the polygon points with increased size to reflect zoom
+    for (let i = 0; i < polygon.points.length; i++) {
+        const relX = polygon.points[i].x - cursorX;
+        const relY = polygon.points[i].y - cursorY;
+        const magnifierX = centerX + (relX * scaleFactor);
+        const magnifierY = centerY + (relY * scaleFactor);
+        
+        // Scale point size based on zoom level
+        const pointRadius = 12 * scaleFactor / 8;
+        
+        ctx.beginPath();
+        ctx.arc(magnifierX, magnifierY, pointRadius, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.fill();
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = 'white';
+        ctx.stroke();
+    }
+}
+
+// Optimize the performance of pixelToLatLng function
+let lastProjection = null;
+let lastBounds = null;
+let lastZoom = null;
+let lastScale = null;
+let lastTopRight = null;
+let lastBottomLeft = null;
+
+function pixelToLatLng(pixel) {
+    if (!map) return null;
+    
+    try {
+        // Cache projection calculations if possible
+        const currentZoom = map.getZoom();
+        const currentBounds = map.getBounds();
+        let needsUpdate = false;
+        
+        if (!lastProjection || !lastBounds || lastZoom !== currentZoom) {
+            lastProjection = map.getProjection();
+            lastBounds = currentBounds;
+            lastZoom = currentZoom;
+            lastScale = Math.pow(2, currentZoom);
+            needsUpdate = true;
+        }
+        
+        if (needsUpdate && lastProjection && lastBounds) {
+            lastTopRight = lastProjection.fromLatLngToPoint(lastBounds.getNorthEast());
+            lastBottomLeft = lastProjection.fromLatLngToPoint(lastBounds.getSouthWest());
+        }
+        
+        if (!lastProjection || !lastTopRight || !lastBottomLeft) {
+            return null;
+        }
+        
+        const worldPoint = new google.maps.Point(
+            pixel.x / lastScale + lastBottomLeft.x,
+            pixel.y / lastScale + lastTopRight.y
+        );
+        
+        return lastProjection.fromPointToLatLng(worldPoint);
+    } catch (error) {
+        console.error("Error converting pixel to LatLng:", error);
+        return null;
     }
 }
 
@@ -148,31 +467,6 @@ function hideMagnifier() {
     }
 }
 
-// Convert pixel coordinates on the canvas to LatLng coordinates
-function pixelToLatLng(pixel) {
-    if (!map || !map.getProjection()) return null;
-    
-    try {
-        const projection = map.getProjection();
-        const bounds = map.getBounds();
-        
-        if (!projection || !bounds) return null;
-        
-        const topRight = projection.fromLatLngToPoint(bounds.getNorthEast());
-        const bottomLeft = projection.fromLatLngToPoint(bounds.getSouthWest());
-        const scale = Math.pow(2, map.getZoom());
-        
-        const worldPoint = new google.maps.Point(
-            pixel.x / scale + bottomLeft.x,
-            pixel.y / scale + topRight.y
-        );
-        
-        return projection.fromPointToLatLng(worldPoint);
-    } catch (error) {
-        console.error("Error converting pixel to LatLng:", error);
-        return null;
-    }
-}
 
 // Update canvas size when map size changes
 function updateCanvasSize() {
