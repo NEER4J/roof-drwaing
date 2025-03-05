@@ -715,3 +715,32 @@ header {
     z-index: 999;
     pointer-events: none;
 }
+
+
+/* Add these styles to your CSS file for the magnifier */
+
+#magnifier-map {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
+    position: absolute;
+    z-index: 1000;
+    overflow: hidden;
+    pointer-events: none; /* Allow clicks to pass through */
+}
+
+#magnifier-crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1001;
+    pointer-events: none;
+}
+
+#magnifier-crosshair div {
+    position: absolute;
+    background-color: white;
+}

@@ -10,12 +10,9 @@ let activePolygonIndex = -1;
 let isHoveringFirstPoint = false;
 let currentPolygonColor = 'green'; // Default color for first roof
 let isDraggingPoint = false;
-let mapSnapshotCanvas;
-let mapSnapshotCtx;
 let magnifierMap = null;  // Will hold the secondary map for the magnifier
 let magnifierDiv = null;  // DOM element for the magnifier
 let isMagnifierActive = false;
-
 
 // Set up the drawing canvas
 function setupDrawingCanvas() {
@@ -34,6 +31,147 @@ function setupDrawingCanvas() {
     drawingCanvas.addEventListener('mousedown', handleCanvasMouseDown);
     drawingCanvas.addEventListener('mousemove', handleCanvasMouseMove);
     drawingCanvas.addEventListener('mouseup', handleCanvasMouseUp);
+    
+    // Set up magnifier map
+    setupMagnifier();
+}
+
+// Setup a secondary map for the magnifier
+function setupMagnifier() {
+    // Create a div for the magnifier map
+    magnifierDiv = document.createElement('div');
+    magnifierDiv.id = 'magnifier-map';
+    magnifierDiv.style.position = 'absolute';
+    magnifierDiv.style.width = '120px';
+    magnifierDiv.style.height = '120px';
+    magnifierDiv.style.borderRadius = '50%';
+    magnifierDiv.style.overflow = 'hidden';
+    magnifierDiv.style.border = '2px solid white';
+    magnifierDiv.style.boxShadow = '0 0 5px rgba(0,0,0,0.4)';
+    magnifierDiv.style.zIndex = '1000';
+    magnifierDiv.style.display = 'none';
+    magnifierDiv.style.pointerEvents = 'none'; // Make sure it doesn't interfere with mouse events
+    
+    // Add to the parent container
+    const mapContainer = document.getElementById('map-container').parentElement;
+    mapContainer.appendChild(magnifierDiv);
+    
+    // We'll initialize the actual map when we have a valid Google Maps instance
+    if (typeof google !== 'undefined' && google.maps) {
+        initMagnifierMap();
+    }
+    
+    // Add crosshair to magnifier
+    const crosshair = document.createElement('div');
+    crosshair.id = 'magnifier-crosshair';
+    crosshair.style.position = 'absolute';
+    crosshair.style.top = '50%';
+    crosshair.style.left = '50%';
+    crosshair.style.transform = 'translate(-50%, -50%)';
+    crosshair.style.pointerEvents = 'none';
+    crosshair.style.zIndex = '1001';
+    
+    // Create crosshair lines
+    const horizontalLine = document.createElement('div');
+    horizontalLine.style.position = 'absolute';
+    horizontalLine.style.width = '10px';
+    horizontalLine.style.height = '2px';
+    horizontalLine.style.backgroundColor = 'white';
+    horizontalLine.style.top = '0';
+    horizontalLine.style.left = '-5px';
+    
+    const verticalLine = document.createElement('div');
+    verticalLine.style.position = 'absolute';
+    verticalLine.style.width = '2px';
+    verticalLine.style.height = '10px';
+    verticalLine.style.backgroundColor = 'white';
+    verticalLine.style.top = '-5px';
+    verticalLine.style.left = '0';
+    
+    crosshair.appendChild(horizontalLine);
+    crosshair.appendChild(verticalLine);
+    magnifierDiv.appendChild(crosshair);
+}
+
+// Initialize the magnifier map once Google Maps is ready
+function initMagnifierMap() {
+    if (!magnifierDiv || !map) return;
+    
+    try {
+        // Create the magnifier map with higher zoom level
+        magnifierMap = new google.maps.Map(magnifierDiv, {
+            center: map.getCenter(),
+            zoom: map.getZoom() + 3,  // Higher zoom level
+            mapTypeId: 'satellite',
+            disableDefaultUI: true,   // No controls needed
+            draggable: false,
+            zoomControl: false,
+            scrollwheel: false,
+            disableDoubleClickZoom: true
+        });
+    } catch (error) {
+        console.error("Could not initialize magnifier map:", error);
+    }
+}
+
+// Update the magnifier position and content
+function updateMagnifier(x, y) {
+    if (!magnifierDiv || !magnifierMap || !map) return;
+    
+    // Make sure the magnifier is visible
+    magnifierDiv.style.display = 'block';
+    
+    // Offset the magnifier from the cursor (top-right)
+    const offsetX = 40;
+    const offsetY = -40;
+    
+    // Position the magnifier div
+    magnifierDiv.style.left = (x + offsetX) + 'px';
+    magnifierDiv.style.top = (y + offsetY) + 'px';
+    
+    // Update the map center to match the cursor position
+    try {
+        const point = new google.maps.Point(x, y);
+        const latLng = pixelToLatLng(point);
+        if (latLng) {
+            magnifierMap.setCenter(latLng);
+        }
+    } catch (error) {
+        console.error("Error updating magnifier position:", error);
+    }
+}
+
+// Hide the magnifier
+function hideMagnifier() {
+    if (magnifierDiv) {
+        magnifierDiv.style.display = 'none';
+    }
+}
+
+// Convert pixel coordinates on the canvas to LatLng coordinates
+function pixelToLatLng(pixel) {
+    if (!map || !map.getProjection()) return null;
+    
+    try {
+        const projection = map.getProjection();
+        const bounds = map.getBounds();
+        
+        if (!projection || !bounds) return null;
+        
+        const topRight = projection.fromLatLngToPoint(bounds.getNorthEast());
+        const bottomLeft = projection.fromLatLngToPoint(bounds.getSouthWest());
+        const scale = Math.pow(2, map.getZoom());
+        
+        const worldPoint = new google.maps.Point(
+            pixel.x / scale + bottomLeft.x,
+            pixel.y / scale + topRight.y
+        );
+        
+        return projection.fromPointToLatLng(worldPoint);
+    } catch (error) {
+        console.error("Error converting pixel to LatLng:", error);
+        return null;
+    }
 }
 
 // Update canvas size when map size changes
@@ -108,25 +246,6 @@ function handleCanvasMouseDown(e) {
         return;
     }
     
-    // Check if we're clicking on an existing point in a drawn polygon
-    if (!isDrawing && polygonAreas.length > 0) {
-        // First check if we're clicking on a point in any completed polygon
-        for (let polygonIndex = 0; polygonIndex < polygonAreas.length; polygonIndex++) {
-            const points = polygonAreas[polygonIndex].points;
-            for (let i = 0; i < points.length; i++) {
-                const distance = Math.sqrt(Math.pow(points[i].x - x, 2) + Math.pow(points[i].y - y, 2));
-                if (distance < 10) {  // If clicking within 10px of a point
-                    selectedPointIndex = i;
-                    activePolygonIndex = polygonIndex;
-                    isDraggingPoint = true;
-                    // Change cursor to indicate dragging
-                    drawingCanvas.style.cursor = 'move';
-                    return;
-                }
-            }
-        }
-    }
-    
     if (isDrawing && polygonPoints.length > 2) {
         // Check if we're clicking on the first point to close the polygon
         const firstPoint = polygonPoints[0];
@@ -177,6 +296,13 @@ function handleCanvasMouseMove(e) {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
+    // Update the magnifier position
+    if (isDrawing) {
+        updateMagnifier(x, y);
+    } else {
+        hideMagnifier();
+    }
+    
     // If dragging a point in a completed polygon
     if (isDraggingPoint && activePolygonIndex !== -1 && selectedPointIndex !== -1) {
         polygonAreas[activePolygonIndex].points[selectedPointIndex].x = x;
@@ -217,9 +343,6 @@ function handleCanvasMouseMove(e) {
             ctx.strokeStyle = 'rgba(76, 175, 80, 0.7)'; // Green line to indicate closing
             ctx.lineWidth = 2;
             ctx.stroke();
-            
-            // Draw magnifier circle
-            drawMagnifierCircle(x, y);
             return;
         }
     } else {
@@ -272,9 +395,6 @@ function handleCanvasMouseMove(e) {
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
             ctx.lineWidth = 2;
             ctx.stroke();
-            
-            // Draw magnifier circle
-            drawMagnifierCircle(x, y);
         }
     }
 }
@@ -293,231 +413,6 @@ function handleCanvasMouseUp() {
         }
     }
 }
-
-// Draw a magnifier circle for precision
-function initMapSnapshot() {
-    mapSnapshotCanvas = document.createElement('canvas');
-    mapSnapshotCtx = mapSnapshotCanvas.getContext('2d');
-    
-    // Size it to match the map container
-    const mapContainer = document.getElementById('map-container');
-    mapSnapshotCanvas.width = mapContainer.offsetWidth;
-    mapSnapshotCanvas.height = mapContainer.offsetHeight;
-}
-
-// Capture the current state of the map
-function captureMapSnapshot() {
-    // Make sure we have a snapshot canvas
-    if (!mapSnapshotCanvas) {
-        initMapSnapshot();
-    }
-    
-    // HTML2Canvas would be ideal here, but since we can't add external libraries,
-    // we'll use a placeholder method
-    
-    // In a real implementation, you would use:
-    // html2canvas(document.getElementById('map-container')).then(canvas => {
-    //     mapSnapshotCtx.clearRect(0, 0, mapSnapshotCanvas.width, mapSnapshotCanvas.height);
-    //     mapSnapshotCtx.drawImage(canvas, 0, 0);
-    // });
-    
-    // Instead, we'll draw a simplified representation of the map
-    mapSnapshotCtx.clearRect(0, 0, mapSnapshotCanvas.width, mapSnapshotCanvas.height);
-    
-    // Draw a simplified satellite-like map background
-    const gridSize = 10;
-    mapSnapshotCtx.fillStyle = '#1E5B1E'; // Base green for vegetation
-    mapSnapshotCtx.fillRect(0, 0, mapSnapshotCanvas.width, mapSnapshotCanvas.height);
-    
-    // Add some texture with darker green patches
-    mapSnapshotCtx.fillStyle = '#174217';
-    for (let i = 0; i < 50; i++) {
-        const x = Math.random() * mapSnapshotCanvas.width;
-        const y = Math.random() * mapSnapshotCanvas.height;
-        const size = 20 + Math.random() * 30;
-        mapSnapshotCtx.beginPath();
-        mapSnapshotCtx.arc(x, y, size, 0, Math.PI * 2);
-        mapSnapshotCtx.fill();
-    }
-    
-    // Add some "buildings" as gray rectangles
-    mapSnapshotCtx.fillStyle = '#555';
-    for (let i = 0; i < 8; i++) {
-        const x = Math.random() * mapSnapshotCanvas.width;
-        const y = Math.random() * mapSnapshotCanvas.height;
-        const width = 60 + Math.random() * 80;
-        const height = 60 + Math.random() * 80;
-        mapSnapshotCtx.fillRect(x, y, width, height);
-    }
-    
-    // Add "roads" as light gray lines
-    mapSnapshotCtx.strokeStyle = '#aaa';
-    mapSnapshotCtx.lineWidth = 8;
-    mapSnapshotCtx.beginPath();
-    mapSnapshotCtx.moveTo(0, mapSnapshotCanvas.height / 2);
-    mapSnapshotCtx.lineTo(mapSnapshotCanvas.width, mapSnapshotCanvas.height / 2);
-    mapSnapshotCtx.stroke();
-    
-    mapSnapshotCtx.beginPath();
-    mapSnapshotCtx.moveTo(mapSnapshotCanvas.width / 2, 0);
-    mapSnapshotCtx.lineTo(mapSnapshotCanvas.width / 2, mapSnapshotCanvas.height);
-    mapSnapshotCtx.stroke();
-}
-
-// Function to draw magnifier with map content
-function drawMagnifierCircle(x, y) {
-    // Capture current map state if we haven't already
-    if (!mapSnapshotCanvas) {
-        captureMapSnapshot();
-    }
-    
-    // Draw zoom circle with an offset from the cursor
-    const radius = 30;
-    const zoomFactor = 2; // Magnification level
-    
-    // Add offset to position the magnifier to the top-right of the cursor
-    const offsetX = 40;
-    const offsetY = -40;
-    
-    // Adjusted position for the magnifier
-    const magX = x + offsetX;
-    const magY = y + offsetY;
-    
-    // Make sure the magnifier stays within canvas bounds
-    const adjustedX = Math.min(Math.max(magX, radius), drawingCanvas.width - radius);
-    const adjustedY = Math.min(Math.max(magY, radius), drawingCanvas.height - radius);
-    
-    // Save the current state
-    ctx.save();
-    
-    // Create a circular clipping region for the magnifier
-    ctx.beginPath();
-    ctx.arc(adjustedX, adjustedY, radius, 0, Math.PI * 2);
-    ctx.clip();
-    
-    // Clear the clipped area
-    ctx.clearRect(adjustedX - radius, adjustedY - radius, radius * 2, radius * 2);
-    
-    // Draw the map snapshot (simplified representation)
-    const sourceRadius = radius / zoomFactor;
-    
-    // Draw the map snapshot inside the magnifier circle
-    ctx.drawImage(
-        // Source is the map snapshot canvas
-        mapSnapshotCanvas,
-        // Source rectangle (the area around the cursor)
-        x - sourceRadius, y - sourceRadius, 
-        sourceRadius * 2, sourceRadius * 2,
-        // Destination rectangle (the magnifier area)
-        adjustedX - radius, adjustedY - radius, 
-        radius * 2, radius * 2
-    );
-    
-    // Draw any active polygon points that might be in the magnifier view
-    if (polygonPoints.length > 0) {
-        // Calculate the transformation for points inside the magnifier
-        const transformPoint = (px, py) => {
-            // Convert point coordinates to magnifier space
-            const relativeX = px - (x - sourceRadius);
-            const relativeY = py - (y - sourceRadius);
-            
-            // Scale by zoom factor
-            const scaledX = relativeX * zoomFactor;
-            const scaledY = relativeY * zoomFactor;
-            
-            // Offset to magnifier position
-            return {
-                x: adjustedX - radius + scaledX,
-                y: adjustedY - radius + scaledY
-            };
-        };
-        
-        // Draw connection lines between points in the magnifier
-        if (polygonPoints.length > 1) {
-            ctx.beginPath();
-            let firstPointInMag = false;
-            let firstPointCoords = null;
-            
-            for (let i = 0; i < polygonPoints.length; i++) {
-                const px = polygonPoints[i].x;
-                const py = polygonPoints[i].y;
-                const distanceFromCursor = Math.sqrt(Math.pow(px - x, 2) + Math.pow(py - y, 2));
-                
-                if (distanceFromCursor <= sourceRadius) {
-                    const transformedPoint = transformPoint(px, py);
-                    
-                    if (!firstPointInMag) {
-                        ctx.moveTo(transformedPoint.x, transformedPoint.y);
-                        firstPointInMag = true;
-                        firstPointCoords = transformedPoint;
-                    } else {
-                        ctx.lineTo(transformedPoint.x, transformedPoint.y);
-                    }
-                }
-            }
-            
-            // Complete shape if needed
-            if (firstPointInMag && isHoveringFirstPoint) {
-                ctx.lineTo(firstPointCoords.x, firstPointCoords.y);
-            }
-            
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
-        
-        // Draw polygon points that would appear in the magnifier area
-        for (let i = 0; i < polygonPoints.length; i++) {
-            const px = polygonPoints[i].x;
-            const py = polygonPoints[i].y;
-            
-            // Check if point is within magnifier source area
-            const distanceFromCursor = Math.sqrt(Math.pow(px - x, 2) + Math.pow(py - y, 2));
-            if (distanceFromCursor <= sourceRadius) {
-                // Transform point to magnifier space
-                const transformedPoint = transformPoint(px, py);
-                
-                // Draw the point in the magnifier
-                ctx.beginPath();
-                ctx.arc(transformedPoint.x, transformedPoint.y, 5 * zoomFactor, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-                ctx.fill();
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = '#fff';
-                ctx.stroke();
-            }
-        }
-    }
-    
-    // End the clipping and restore state
-    ctx.restore();
-    
-    // Draw the circle border
-    ctx.beginPath();
-    ctx.arc(adjustedX, adjustedY, radius, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    
-    // Draw crosshair inside the magnifier
-    ctx.beginPath();
-    ctx.moveTo(adjustedX - 5, adjustedY);
-    ctx.lineTo(adjustedX + 5, adjustedY);
-    ctx.moveTo(adjustedX, adjustedY - 5);
-    ctx.lineTo(adjustedX, adjustedY + 5);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    
-    // Draw a small indicator line connecting cursor to magnifier
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(adjustedX, adjustedY);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-}
-
 
 // Complete the polygon and add it to the list of areas
 function completePolygon() {
@@ -550,6 +445,9 @@ function completePolygon() {
     isDrawing = false;
     polygonPoints = [];
     isHoveringFirstPoint = false;
+    
+    // Hide the magnifier
+    hideMagnifier();
     
     redrawPolygons();
     
@@ -773,9 +671,6 @@ function drawPolygonPoints(points, isActive = false) {
             ctx.stroke();
         }
     }
-    
-    // Draw connecting lines - we don't draw these here anymore
-    // They're drawn in the drawPolygon function with proper colors
 }
 
 // Clear the current drawing or the last completed polygon
@@ -788,6 +683,9 @@ function clearDrawing() {
         isHoveringFirstPoint = false;
         selectedPointIndex = -1;
         isDraggingPoint = false;
+        
+        // Hide the magnifier
+        hideMagnifier();
         
         // Update instructions
         updateInstructions('Click a corner of your roof to start drawing.');
@@ -829,6 +727,9 @@ function clearAllRoofs() {
     selectedPointIndex = -1;
     isDraggingPoint = false;
     
+    // Hide the magnifier
+    hideMagnifier();
+    
     redrawPolygons();
     updateInstructions('Click a corner of your roof to start drawing.');
     document.getElementById('add-roof-btn').disabled = true;
@@ -848,6 +749,7 @@ function addAnotherRoof() {
     } else if (currentPolygonColor === 'purple') {
         currentPolygonColor = 'orange';
     } else {
+        currentPol
         currentPolygonColor = 'blue';
     }
     
@@ -880,7 +782,6 @@ function addAnotherRoof() {
     }
 }
 
-// Calculate polygon properties like area and estimated panels
 // Calculate polygon properties like area and estimated panels
 function calculatePolygonProperties(polygon) {
     // Make sure the polygon object exists

@@ -4,6 +4,8 @@ let map;
 let geocoder;
 let isMapAdjustmentMode = false;
 
+// Initialize Google Maps// Add this to your map-handler.js file to initialize the map correctly
+
 // Initialize Google Maps
 function initMap() {
     map = new google.maps.Map(document.getElementById('map-container'), {
@@ -15,7 +17,20 @@ function initMap() {
     
     geocoder = new google.maps.Geocoder();
     setupDrawingCanvas();
-    google.maps.event.addListener(map, 'bounds_changed', updateCanvasSize);
+    
+    // Initialize the magnifier map after the main map is ready
+    if (typeof initMagnifierMap === 'function') {
+        initMagnifierMap();
+    }
+    
+    google.maps.event.addListener(map, 'bounds_changed', function() {
+        updateCanvasSize();
+        
+        // Update magnifier map zoom level when main map zoom changes
+        if (magnifierMap) {
+            magnifierMap.setZoom(map.getZoom() + 3);
+        }
+    });
     
     // Show initial instructions more prominently
     updateInstructions('Please search for your address to begin');
@@ -33,15 +48,14 @@ function searchAddress() {
         if (status === 'OK') {
             map.setCenter(results[0].geometry.location);
             
-            // Create a marker at the location - using the newer AdvancedMarkerElement if available
+            // Create a marker using AdvancedMarkerElement if available
             if (google.maps.marker && google.maps.marker.AdvancedMarkerElement) {
-                // Use the newer API
-                const marker = new google.maps.marker.AdvancedMarkerElement({
+                new google.maps.marker.AdvancedMarkerElement({
                     map: map,
                     position: results[0].geometry.location
                 });
             } else {
-                // Fallback to the legacy Marker
+                // Fall back to legacy Marker
                 new google.maps.Marker({
                     map: map,
                     position: results[0].geometry.location
