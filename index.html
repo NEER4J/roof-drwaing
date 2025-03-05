@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Panel Roof Drawing</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="roof-drawing-section">
+            <div class="step-header">
+                <h2>Draw Your Roof</h2>
+                <p>Outline each roof area where you'd like to install solar panels</p>
+            </div>
+            
+            <div class="address-search">
+                <input type="text" id="address-input" placeholder="Enter your address">
+                <button id="search-address-btn">Search</button>
+            </div>
+            
+            <div class="map-container-wrapper">
+                <div id="map-container">
+                    <!-- Google Maps will be loaded here -->
+                </div>
+                
+                <div id="drawing-canvas-container">
+                    <canvas id="drawing-canvas"></canvas>
+                </div>
+                
+                <div class="compass">
+                    <div class="direction n">N</div>
+                    <div class="direction e">E</div>
+                    <div class="direction s">S</div>
+                    <div class="direction w">W</div>
+                </div>
+                
+                <div class="magnifier-info">
+                    <div class="bulb-icon">💡</div>
+                    <p>You can click and drag a corner to fine tune</p>
+                </div>
+                
+                <div class="drawing-panel" id="drawing-panel">
+                    <div class="drawing-instructions" id="drawing-instructions">
+                        Search your address to begin
+                    </div>
+                    
+                    <div class="draw-actions">
+                        <button id="next-btn" class="primary-btn" style="display: none;">Next</button>
+                        <button id="clear-btn" class="secondary-btn" style="display: none;">Clear</button>
+                    </div>
+                    
+                    <div class="draw-status" style="display: none;">
+                        <div class="success-icon">👍</div>
+                        <h3>Roof drawn!</h3>
+                        <p>Click done if you're happy with the outline. If not, you can re-draw it</p>
+                        <div class="status-actions">
+                            <button id="done-btn" class="primary-btn" disabled>Done</button>
+                            <button id="add-roof-btn" class="secondary-btn" disabled>Add another roof</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="roof-summary" style="display: none;">
+                <div class="summary-header">
+                    <div class="check-icon">✅</div>
+                    <h3>Perfect!</h3>
+                    <p>It looks like this roof is suitable for solar</p>
+                </div>
+                
+                <div class="roof-details">
+                    <!-- Roof details will be populated dynamically -->
+                </div>
+                
+                <div class="total-summary">
+                    <div class="total-item">
+                        <div class="total-label">Total roof area</div>
+                        <div class="total-value"><span id="total-area">0</span> m²</div>
+                    </div>
+                    <div class="total-item">
+                        <div class="total-label">Total suitable for</div>
+                        <div class="total-value"><span id="total-panels">0</span> panels</div>
+                    </div>
+                </div>
+                
+                <div class="add-roof-container">
+                    <button id="add-3rd-roof" class="outline-btn">
+                        <span class="plus-icon">+</span> Add a 3rd roof space
+                    </button>
+                </div>
+                
+                <div class="quote-actions">
+                    <button id="get-quote-btn" class="primary-btn">Get your fixed price</button>
+                    <div id="quote-success" class="success-message" style="display: none;">
+                        Thank you! Your quote request has been submitted. We'll contact you shortly.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Scripts -->
+    <script src="config.js"></script>
+    <script src="map-handler.js"></script>
+    <script src="drawing-handler.js"></script>
+    <script src="roof-manager.js"></script>
+    <script src="app.js"></script>
+    <script src="cal.js"></script>
+</body>
+</html>
