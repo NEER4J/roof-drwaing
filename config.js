@@ -8,7 +8,7 @@ const CONFIG = {
     GOOGLE_MAPS_API_KEY: "AIzaSyC7QveAHt4G4u1p0LjKBPaJl1LPUJgcEDU",
     
     // Panel specifications
-    PANEL_WIDTH: 1.7, // meters
+    PANEL_WIDTH: 1.9, // meters
     PANEL_HEIGHT: 1.0, // meters
     PANEL_POWER: 350, // watts
     PANEL_SPACING: 0.1, // meters

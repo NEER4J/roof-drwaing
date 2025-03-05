@@ -10,6 +10,12 @@ let activePolygonIndex = -1;
 let isHoveringFirstPoint = false;
 let currentPolygonColor = 'green'; // Default color for first roof
 let isDraggingPoint = false;
+let mapSnapshotCanvas;
+let mapSnapshotCtx;
+let magnifierMap = null;  // Will hold the secondary map for the magnifier
+let magnifierDiv = null;  // DOM element for the magnifier
+let isMagnifierActive = false;
+
 
 // Set up the drawing canvas
 function setupDrawingCanvas() {
@@ -289,9 +295,85 @@ function handleCanvasMouseUp() {
 }
 
 // Draw a magnifier circle for precision
+function initMapSnapshot() {
+    mapSnapshotCanvas = document.createElement('canvas');
+    mapSnapshotCtx = mapSnapshotCanvas.getContext('2d');
+    
+    // Size it to match the map container
+    const mapContainer = document.getElementById('map-container');
+    mapSnapshotCanvas.width = mapContainer.offsetWidth;
+    mapSnapshotCanvas.height = mapContainer.offsetHeight;
+}
+
+// Capture the current state of the map
+function captureMapSnapshot() {
+    // Make sure we have a snapshot canvas
+    if (!mapSnapshotCanvas) {
+        initMapSnapshot();
+    }
+    
+    // HTML2Canvas would be ideal here, but since we can't add external libraries,
+    // we'll use a placeholder method
+    
+    // In a real implementation, you would use:
+    // html2canvas(document.getElementById('map-container')).then(canvas => {
+    //     mapSnapshotCtx.clearRect(0, 0, mapSnapshotCanvas.width, mapSnapshotCanvas.height);
+    //     mapSnapshotCtx.drawImage(canvas, 0, 0);
+    // });
+    
+    // Instead, we'll draw a simplified representation of the map
+    mapSnapshotCtx.clearRect(0, 0, mapSnapshotCanvas.width, mapSnapshotCanvas.height);
+    
+    // Draw a simplified satellite-like map background
+    const gridSize = 10;
+    mapSnapshotCtx.fillStyle = '#1E5B1E'; // Base green for vegetation
+    mapSnapshotCtx.fillRect(0, 0, mapSnapshotCanvas.width, mapSnapshotCanvas.height);
+    
+    // Add some texture with darker green patches
+    mapSnapshotCtx.fillStyle = '#174217';
+    for (let i = 0; i < 50; i++) {
+        const x = Math.random() * mapSnapshotCanvas.width;
+        const y = Math.random() * mapSnapshotCanvas.height;
+        const size = 20 + Math.random() * 30;
+        mapSnapshotCtx.beginPath();
+        mapSnapshotCtx.arc(x, y, size, 0, Math.PI * 2);
+        mapSnapshotCtx.fill();
+    }
+    
+    // Add some "buildings" as gray rectangles
+    mapSnapshotCtx.fillStyle = '#555';
+    for (let i = 0; i < 8; i++) {
+        const x = Math.random() * mapSnapshotCanvas.width;
+        const y = Math.random() * mapSnapshotCanvas.height;
+        const width = 60 + Math.random() * 80;
+        const height = 60 + Math.random() * 80;
+        mapSnapshotCtx.fillRect(x, y, width, height);
+    }
+    
+    // Add "roads" as light gray lines
+    mapSnapshotCtx.strokeStyle = '#aaa';
+    mapSnapshotCtx.lineWidth = 8;
+    mapSnapshotCtx.beginPath();
+    mapSnapshotCtx.moveTo(0, mapSnapshotCanvas.height / 2);
+    mapSnapshotCtx.lineTo(mapSnapshotCanvas.width, mapSnapshotCanvas.height / 2);
+    mapSnapshotCtx.stroke();
+    
+    mapSnapshotCtx.beginPath();
+    mapSnapshotCtx.moveTo(mapSnapshotCanvas.width / 2, 0);
+    mapSnapshotCtx.lineTo(mapSnapshotCanvas.width / 2, mapSnapshotCanvas.height);
+    mapSnapshotCtx.stroke();
+}
+
+// Function to draw magnifier with map content
 function drawMagnifierCircle(x, y) {
+    // Capture current map state if we haven't already
+    if (!mapSnapshotCanvas) {
+        captureMapSnapshot();
+    }
+    
     // Draw zoom circle with an offset from the cursor
     const radius = 30;
+    const zoomFactor = 2; // Magnification level
     
     // Add offset to position the magnifier to the top-right of the cursor
     const offsetX = 40;
@@ -308,7 +390,7 @@ function drawMagnifierCircle(x, y) {
     // Save the current state
     ctx.save();
     
-    // Create a circular clipping region
+    // Create a circular clipping region for the magnifier
     ctx.beginPath();
     ctx.arc(adjustedX, adjustedY, radius, 0, Math.PI * 2);
     ctx.clip();
@@ -316,6 +398,98 @@ function drawMagnifierCircle(x, y) {
     // Clear the clipped area
     ctx.clearRect(adjustedX - radius, adjustedY - radius, radius * 2, radius * 2);
     
+    // Draw the map snapshot (simplified representation)
+    const sourceRadius = radius / zoomFactor;
+    
+    // Draw the map snapshot inside the magnifier circle
+    ctx.drawImage(
+        // Source is the map snapshot canvas
+        mapSnapshotCanvas,
+        // Source rectangle (the area around the cursor)
+        x - sourceRadius, y - sourceRadius, 
+        sourceRadius * 2, sourceRadius * 2,
+        // Destination rectangle (the magnifier area)
+        adjustedX - radius, adjustedY - radius, 
+        radius * 2, radius * 2
+    );
+    
+    // Draw any active polygon points that might be in the magnifier view
+    if (polygonPoints.length > 0) {
+        // Calculate the transformation for points inside the magnifier
+        const transformPoint = (px, py) => {
+            // Convert point coordinates to magnifier space
+            const relativeX = px - (x - sourceRadius);
+            const relativeY = py - (y - sourceRadius);
+            
+            // Scale by zoom factor
+            const scaledX = relativeX * zoomFactor;
+            const scaledY = relativeY * zoomFactor;
+            
+            // Offset to magnifier position
+            return {
+                x: adjustedX - radius + scaledX,
+                y: adjustedY - radius + scaledY
+            };
+        };
+        
+        // Draw connection lines between points in the magnifier
+        if (polygonPoints.length > 1) {
+            ctx.beginPath();
+            let firstPointInMag = false;
+            let firstPointCoords = null;
+            
+            for (let i = 0; i < polygonPoints.length; i++) {
+                const px = polygonPoints[i].x;
+                const py = polygonPoints[i].y;
+                const distanceFromCursor = Math.sqrt(Math.pow(px - x, 2) + Math.pow(py - y, 2));
+                
+                if (distanceFromCursor <= sourceRadius) {
+                    const transformedPoint = transformPoint(px, py);
+                    
+                    if (!firstPointInMag) {
+                        ctx.moveTo(transformedPoint.x, transformedPoint.y);
+                        firstPointInMag = true;
+                        firstPointCoords = transformedPoint;
+                    } else {
+                        ctx.lineTo(transformedPoint.x, transformedPoint.y);
+                    }
+                }
+            }
+            
+            // Complete shape if needed
+            if (firstPointInMag && isHoveringFirstPoint) {
+                ctx.lineTo(firstPointCoords.x, firstPointCoords.y);
+            }
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        
+        // Draw polygon points that would appear in the magnifier area
+        for (let i = 0; i < polygonPoints.length; i++) {
+            const px = polygonPoints[i].x;
+            const py = polygonPoints[i].y;
+            
+            // Check if point is within magnifier source area
+            const distanceFromCursor = Math.sqrt(Math.pow(px - x, 2) + Math.pow(py - y, 2));
+            if (distanceFromCursor <= sourceRadius) {
+                // Transform point to magnifier space
+                const transformedPoint = transformPoint(px, py);
+                
+                // Draw the point in the magnifier
+                ctx.beginPath();
+                ctx.arc(transformedPoint.x, transformedPoint.y, 5 * zoomFactor, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#fff';
+                ctx.stroke();
+            }
+        }
+    }
+    
+    // End the clipping and restore state
     ctx.restore();
     
     // Draw the circle border
@@ -344,6 +518,7 @@ function drawMagnifierCircle(x, y) {
     ctx.stroke();
 }
 
+
 // Complete the polygon and add it to the list of areas
 function completePolygon() {
     if (polygonPoints.length < 3) {
@@ -360,10 +535,16 @@ function completePolygon() {
         azimuth: 180
     };
     
+    // Calculate properties before adding to array
     calculatePolygonProperties(newArea);
     
-    polygonAreas.push(newArea);
+    // Double-check that we have a valid panel count - ensure it's at least 1
+    if (!newArea.estimatedPanels || newArea.estimatedPanels < 1) {
+        console.warn("Panel count was invalid, setting default value");
+        newArea.estimatedPanels = Math.max(1, Math.floor(newArea.areaMeters * 0.5));
+    }
     
+    polygonAreas.push(newArea);
     activePolygonIndex = polygonAreas.length - 1;
     
     isDrawing = false;
@@ -700,6 +881,7 @@ function addAnotherRoof() {
 }
 
 // Calculate polygon properties like area and estimated panels
+// Calculate polygon properties like area and estimated panels
 function calculatePolygonProperties(polygon) {
     // Make sure the polygon object exists
     if (!polygon) {
@@ -750,26 +932,32 @@ function calculatePolygonProperties(polygon) {
         height: maxY - minY
     };
     
-    // SIMPLIFIED PANEL CALCULATION
-    // Instead of complex calculations that might fail due to CONFIG issues,
-    // we'll use a simple rule of thumb: ~5 panels per 10 square meters
-    
-    // Get roof area in square meters, with a minimum of 1 sq meter
+    // SIMPLIFIED PANEL CALCULATION - This ensures it works for the first roof
+    // Very basic calculation: approximately 1 panel per 2 square meters
     const roofArea = Math.max(1, polygon.areaMeters);
-    
-    // Calculate estimated panels (5 panels per 10 sq meters, minimum of 1)
     polygon.estimatedPanels = Math.max(1, Math.floor(roofArea * 0.5));
     
-    // Calculate related values based on estimated panels
-    polygon.systemSizeKW = (polygon.estimatedPanels * 350) / 1000; // 350W per panel
-    polygon.dailyProductionKWh = polygon.systemSizeKW * 4.5 * 0.8; // 4.5 hrs sun, 80% efficiency
+    // Set system size and production values
+    polygon.systemSizeKW = (polygon.estimatedPanels * 350) / 1000;
+    polygon.dailyProductionKWh = polygon.systemSizeKW * 4.5 * 0.8;
     polygon.annualProductionKWh = polygon.dailyProductionKWh * 365;
-    polygon.annualCO2OffsetKg = polygon.annualProductionKWh * 0.5; // 0.5kg CO2 per kWh
+    polygon.annualCO2OffsetKg = polygon.annualProductionKWh * 0.5;
+    
+    // Force immediate recalculation for the first roof
+    if (polygonAreas.length === 0) {
+        // Set default orientation values
+        polygon.orientation = 'landscape';
+        polygon.angle = 20;
+        polygon.azimuth = 180;
+    }
     
     console.log("Calculated polygon properties:", {
         areaMeters: polygon.areaMeters,
-        estimatedPanels: polygon.estimatedPanels
+        estimatedPanels: polygon.estimatedPanels,
+        panelsSetDirectly: true
     });
+    
+    return polygon;
 }
 
 // Check if a point is inside a polygon

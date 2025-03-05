@@ -33,11 +33,20 @@ function searchAddress() {
         if (status === 'OK') {
             map.setCenter(results[0].geometry.location);
             
-            // Create a marker at the location
-            new google.maps.Marker({
-                map: map,
-                position: results[0].geometry.location
-            });
+            // Create a marker at the location - using the newer AdvancedMarkerElement if available
+            if (google.maps.marker && google.maps.marker.AdvancedMarkerElement) {
+                // Use the newer API
+                const marker = new google.maps.marker.AdvancedMarkerElement({
+                    map: map,
+                    position: results[0].geometry.location
+                });
+            } else {
+                // Fallback to the legacy Marker
+                new google.maps.Marker({
+                    map: map,
+                    position: results[0].geometry.location
+                });
+            }
             
             map.setZoom(20);
             
@@ -113,4 +122,46 @@ function startDrawingMode() {
 // Update instruction text
 function updateInstructions(text) {
     document.getElementById('drawing-instructions').textContent = text;
+}
+
+// Function to convert from LatLng to pixel coordinates
+function latLngToPixel(latLng) {
+    if (!map || !map.getProjection()) return null;
+    
+    const scale = Math.pow(2, map.getZoom());
+    const projection = map.getProjection();
+    const bounds = map.getBounds();
+    
+    if (!projection || !bounds) return null;
+    
+    const topRight = projection.fromLatLngToPoint(bounds.getNorthEast());
+    const bottomLeft = projection.fromLatLngToPoint(bounds.getSouthWest());
+    const worldPoint = projection.fromLatLngToPoint(latLng);
+    
+    return {
+        x: (worldPoint.x - bottomLeft.x) * scale,
+        y: (worldPoint.y - topRight.y) * scale
+    };
+}
+
+// Modify the setupDrawingCanvas function to include magnifier behavior
+function setupDrawingCanvas() {
+    const mapContainer = document.getElementById('map-container');
+    const canvasContainer = document.getElementById('drawing-canvas-container');
+    drawingCanvas = document.getElementById('drawing-canvas');
+    
+    canvasContainer.style.width = mapContainer.offsetWidth + 'px';
+    canvasContainer.style.height = mapContainer.offsetHeight + 'px';
+    
+    drawingCanvas.width = mapContainer.offsetWidth;
+    drawingCanvas.height = mapContainer.offsetHeight;
+    
+    ctx = drawingCanvas.getContext('2d');
+    
+    drawingCanvas.addEventListener('mousedown', handleCanvasMouseDown);
+    drawingCanvas.addEventListener('mousemove', handleCanvasMouseMove);
+    drawingCanvas.addEventListener('mouseup', handleCanvasMouseUp);
+    
+    // These events are now handled by the magnifier functions
+    // We don't need to add additional listeners here
 }

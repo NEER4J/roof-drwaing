@@ -106,6 +106,10 @@ function updateRoofSummary() {
         addRoofBtn.removeEventListener('click', addAnotherRoof);
         addRoofBtn.addEventListener('click', addAnotherRoof);
     }
+    
+    // Dispatch an event to indicate the roof summary was updated
+    // This allows other components to react to the update
+    document.dispatchEvent(new CustomEvent('roofSummaryUpdated'));
 }
 
 // Edit an existing roof
@@ -181,12 +185,14 @@ function getQuote() {
             id: index + 1,
             area: polygon.areaMeters.toFixed(1),
             estimatedPanels: polygon.estimatedPanels,
-            systemSizeKW: polygon.systemSizeKW.toFixed(2),
-            annualProductionKWh: Math.round(polygon.annualProductionKWh),
-            annualCO2OffsetKg: Math.round(polygon.annualCO2OffsetKg)
+            systemSizeKW: polygon.systemSizeKW ? polygon.systemSizeKW.toFixed(2) : "0.00",
+            annualProductionKWh: polygon.annualProductionKWh ? Math.round(polygon.annualProductionKWh) : 0,
+            annualCO2OffsetKg: polygon.annualCO2OffsetKg ? Math.round(polygon.annualCO2OffsetKg) : 0
         })),
         totalArea: parseFloat(document.getElementById('total-area').textContent),
-        totalPanels: parseInt(document.getElementById('total-panels').textContent)
+        totalPanels: parseInt(document.getElementById('total-panels').textContent),
+        totalSystemSize: calculateTotalSystemSize(),
+        totalAnnualProduction: calculateTotalAnnualProduction()
     };
     
     console.log('Quote data ready for submission:', quoteData);
@@ -206,4 +212,30 @@ function getQuote() {
     // .catch((error) => {
     //     console.error('Error:', error);
     // });
+}
+
+// Calculate total system size for all roofs
+function calculateTotalSystemSize() {
+    let totalSystemSize = 0;
+    
+    for (const polygon of polygonAreas) {
+        if (polygon.systemSizeKW) {
+            totalSystemSize += polygon.systemSizeKW;
+        }
+    }
+    
+    return totalSystemSize.toFixed(2);
+}
+
+// Calculate total annual production for all roofs
+function calculateTotalAnnualProduction() {
+    let totalProduction = 0;
+    
+    for (const polygon of polygonAreas) {
+        if (polygon.annualProductionKWh) {
+            totalProduction += polygon.annualProductionKWh;
+        }
+    }
+    
+    return Math.round(totalProduction);
 }
