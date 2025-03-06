@@ -5,7 +5,7 @@
 
 const CONFIG = {
     // Google Maps API key (you'll need to replace this with your actual API key)
-    GOOGLE_MAPS_API_KEY: "AIzaSyC7QveAHt4G4u1p0LjKBPaJl1LPUJgcEDU",
+    GOOGLE_MAPS_API_KEY: "",
     
     // Panel specifications
     PANEL_WIDTH: 1.9, // meters
