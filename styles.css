@@ -441,8 +441,7 @@ body {
 .roof-info-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-    /* padding: 1rem 1.25rem; */
+    gap: 0.2rem 1.5rem;
 }
 
 .roof-info {
@@ -452,7 +451,7 @@ body {
 .roof-label {
     font-size: 13px;
     color: var(--text-light);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.1rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -557,10 +556,27 @@ body {
 /* Fix for responsive layout */
 @media screen and (max-width: 500px) {
     .roof-info-grid {
-        grid-template-columns: 1fr;
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        max-width: 274px;
+        margin: auto;
     }
-}
 
+
+    .roof-number {
+        position: absolute;
+        left: -1px;
+        top: -1px;
+        margin: 0;
+        font-size: 20px;
+        background: white;
+        border: solid 1px gainsboro;
+        width: 24px;
+        border-radius: 10px 0px 10px 0px;
+    }
+
+}
 /* Additional styles for the solar potential results panel */
 
 .results-panel {
@@ -962,6 +978,27 @@ body {
 /* Mobile-specific styles */
 @media screen and (max-width: 768px) {
 
+    .roof-actions {
+        display: flex;
+        gap: 0.25rem;
+        align-items: baseline;
+        margin-left: 0;
+        padding-right: 1rem;
+        margin: 0;
+        width: 100%;
+    }
+
+    .roof-item {
+        flex-direction: column;
+        position: relative;
+        padding: 20px !important;
+        gap: 0;
+    }
+
+    .roof-summary{
+        padding: 20px;
+    }
+
     .container{
         gap: 0;
     }
@@ -1050,4 +1087,136 @@ body {
     position: absolute;
     top: 0;
     left: 0;
+}
+
+/* Roof Questions Styling */
+.roof-questions {
+    background-color: white;
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-md);
+    margin: 0 auto 1.5rem;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+.question-section {
+    margin-bottom: 2rem;
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 0.3s ease-in-out;
+}
+
+.question-section[style*="display: none"] {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.question-section.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.question-section h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--text-color);
+}
+
+.question-section p {
+    color: var(--text-light);
+    margin-bottom: 1.25rem;
+}
+
+.pitch-options {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.pitch-option {
+    flex: 1;
+    padding: 1.5rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    background: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.pitch-option i {
+    font-size: 1.5rem;
+    color: var(--text-light);
+}
+
+.pitch-option span {
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.pitch-option:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(58, 134, 255, 0.05);
+}
+
+.pitch-option.selected {
+    border-color: var(--primary-color);
+    background-color: rgba(58, 134, 255, 0.1);
+}
+
+.pitch-option.selected i,
+.pitch-option.selected span {
+    color: var(--primary-color);
+}
+
+.direction-options {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.direction-option {
+    padding: 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    background: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.direction-option:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(58, 134, 255, 0.05);
+}
+
+.direction-option.selected {
+    border-color: var(--primary-color);
+    background-color: rgba(58, 134, 255, 0.1);
+    color: var(--primary-color);
+}
+
+.question-actions {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.submit-container {
+    text-align: center;
+    margin: 1rem 0 2rem;
+}
+
+.submit-container .primary-btn {
+    min-width: 200px;
+    padding: 1rem 2rem;
+    font-size: 1rem;
 }

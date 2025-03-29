@@ -49,6 +49,41 @@
                 </div>
             </div>
 
+            <!-- Roof Pitch Question -->
+            <div class="roof-questions" style="display: none;">
+                <div class="question-section" id="pitch-question">
+                    <h3>Roof Pitch</h3>
+                    <p>Is this roof pitched or flat?</p>
+                    <div class="pitch-options">
+                        <button class="pitch-option" data-pitch="pitched">
+                            <i class="fas fa-home"></i>
+                            <span>Pitched</span>
+                        </button>
+                        <button class="pitch-option" data-pitch="flat">
+                            <i class="fas fa-square"></i>
+                            <span>Flat</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="question-section" id="direction-question" style="display: none;">
+                    <h3>Roof Direction</h3>
+                    <p>Select which way the roof that you've drawn points towards</p>
+                    <div class="direction-options">
+                        <button class="direction-option" data-direction="N">N</button>
+                        <button class="direction-option" data-direction="NE">NE</button>
+                        <button class="direction-option" data-direction="E">E</button>
+                        <button class="direction-option" data-direction="SE">SE</button>
+                        <button class="direction-option" data-direction="S">S</button>
+                        <button class="direction-option" data-direction="SW">SW</button>
+                        <button class="direction-option" data-direction="W">W</button>
+                        <button class="direction-option" data-direction="NW">NW</button>
+                    </div>
+                </div>
+
+               
+            </div>
+
             <div class="roof-summary" style="display: none;">
                 <div class="summary-header">
                     <div class="check-icon"><i class="fas fa-check"></i></div>
@@ -66,6 +101,8 @@
                         <i class="fas fa-plus"></i> Add another roof space
                     </button>
                 </div>
+
+                
                 
                 <div class="total-summary">
                     <div class="total-item">
@@ -76,6 +113,12 @@
                         <div class="total-label"><i class="fas fa-solar-panel"></i> Total suitable for</div>
                         <div class="total-value"><span id="total-panels">0</span> panels</div>
                     </div>
+                </div>
+
+                <div class="submit-container">
+                    <button id="submit-roofs" class="primary-btn">
+                        <i class="fas fa-check"></i> Submit
+                    </button>
                 </div>
                 
                 <div class="canvas-screenshot">

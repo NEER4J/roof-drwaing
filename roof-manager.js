@@ -10,12 +10,63 @@ function completeDrawing() {
     // Reset the active polygon so nothing remains selected
     activePolygonIndex = -1;
     
-    // Show results summary
-    document.querySelector('.roof-summary').style.display = 'block';
-    document.getElementById('get-quote-btn').style.display = 'block'; 
+    // Hide drawing panel
     document.getElementById('drawing-panel').style.setProperty('display', 'none', 'important');
 
-    // Get the map container and drawing canvas
+    // Show roof questions
+    const roofQuestions = document.querySelector('.roof-questions');
+    roofQuestions.style.display = 'flex';
+
+    // Show only the pitch question initially
+    document.getElementById('pitch-question').style.display = 'block';
+    document.getElementById('direction-question').style.display = 'none';
+
+    // Add event listeners for pitch options
+    document.querySelectorAll('.pitch-option').forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove selected class from all pitch options
+            document.querySelectorAll('.pitch-option').forEach(btn => btn.classList.remove('selected'));
+            // Add selected class to clicked button
+            this.classList.add('selected');
+            // Store the pitch value
+            const selectedPitch = this.getAttribute('data-pitch');
+            polygonAreas[polygonAreas.length - 1].pitch = selectedPitch;
+
+            // Hide pitch question and show direction question
+            document.getElementById('pitch-question').style.display = 'none';
+            document.getElementById('direction-question').style.display = 'block';
+        });
+    });
+
+    // Add event listeners for direction options
+    document.querySelectorAll('.direction-option').forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove selected class from all direction options
+            document.querySelectorAll('.direction-option').forEach(btn => btn.classList.remove('selected'));
+            // Add selected class to clicked button
+            this.classList.add('selected');
+            // Store the direction value
+            const selectedDirection = this.getAttribute('data-direction');
+            polygonAreas[polygonAreas.length - 1].direction = selectedDirection;
+
+            // Hide roof questions
+            roofQuestions.style.display = 'none';
+            
+            // Show results summary
+            document.querySelector('.roof-summary').style.display = 'block';
+            document.getElementById('get-quote-btn').style.display = 'block';
+
+            // Update the roof summary with the new details
+            updateRoofSummary();
+
+            // Generate screenshot
+            generateScreenshot();
+        });
+    });
+}
+
+// Helper function to generate screenshot
+function generateScreenshot() {
     const mapContainer = document.getElementById('map-container');
     const drawingCanvas = document.getElementById('drawing-canvas');
     const screenshotContainer = document.getElementById('canvas-screenshot-container');
@@ -142,8 +193,10 @@ function updateRoofSummary() {
         // Ensure values are defined and formatted properly
         const areaValue = (polygon.areaMeters || 0).toFixed(1);
         const panelsValue = polygon.estimatedPanels || 0;
+        const pitchValue = polygon.pitch ? polygon.pitch.charAt(0).toUpperCase() + polygon.pitch.slice(1) : 'Not specified';
+        const directionValue = polygon.direction || 'Not specified';
         
-        console.log(`Roof ${index+1} - Area: ${areaValue}, Panels: ${panelsValue}`);
+        console.log(`Roof ${index+1} - Area: ${areaValue}, Panels: ${panelsValue}, Pitch: ${pitchValue}, Direction: ${directionValue}`);
         
         // Only show delete button if there's more than one roof
         const deleteButton = polygonAreas.length > 1 
@@ -160,6 +213,14 @@ function updateRoofSummary() {
                 <div class="roof-info">
                     <div class="roof-label"><i class="fas fa-solar-panel"></i> Suitable for</div>
                     <div class="roof-value">${panelsValue} panels</div>
+                </div>
+                <div class="roof-info">
+                    <div class="roof-label"><i class="fas fa-home"></i> Roof pitch</div>
+                    <div class="roof-value">${pitchValue}</div>
+                </div>
+                <div class="roof-info">
+                    <div class="roof-label"><i class="fas fa-compass"></i> Direction</div>
+                    <div class="roof-value">${directionValue}</div>
                 </div>
             </div>
             <div class="roof-actions">

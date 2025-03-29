@@ -53,6 +53,15 @@ function setupEventListeners() {
         getQuoteBtn.addEventListener('click', window.getQuote);
     }
     
+    // Submit button
+    const submitBtn = document.getElementById('submit-roofs');
+    if (submitBtn) {
+        submitBtn.addEventListener('click', function() {
+            // You can add any data collection or validation here before redirecting
+            window.location.href = '/thank-you';
+        });
+    }
+    
     // Add a button to start drawing after map adjustment
     const nextBtn = document.getElementById('next-btn');
     if (nextBtn) {
