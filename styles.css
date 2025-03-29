@@ -1,0 +1,1053 @@
+/* styles.css */
+:root {
+    --primary-color: #303949;
+    --primary-color-light: #f3f4f6;
+    --primary-dark: #0e1013;
+    --secondary-color: #4361ee;
+    --purple-color: #7209b7;
+    --orange-color: #fb8500;
+    --text-color: #2b2d42;
+    --text-light: #6c757d;
+    --light-gray: #f8f9fa;
+    --border-color: #dee2e6;
+    --success-color: #10b981;
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    --border-radius-sm: 0.5rem;
+    --border-radius-md: 0.75rem;
+    --border-radius-lg: 1rem;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--text-color);
+    background-color: #f8fafc;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: flex;
+    gap: 2rem;
+}
+
+.main-roof-left-section {
+    flex: 2;
+    /* min-width: 350px; */
+}
+
+.map-container-wrapper {
+    flex: 2;
+    min-width: 600px;
+    height: 750px;
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    background: white;
+}
+
+#map-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+#drawing-canvas-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: all;
+}
+
+#drawing-canvas {
+    cursor: crosshair;
+}
+
+.compass {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    z-index: 3;
+    backdrop-filter: blur(6px);
+}
+
+.compass .direction {
+    position: absolute;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.compass .direction.n {
+    top: 5px;
+    color: var(--orange-color);
+}
+
+.compass .direction.s {
+    bottom: 5px;
+}
+
+.compass .direction.e {
+    right: 5px;
+}
+
+.compass .direction.w {
+    left: 5px;
+}
+
+.magnifier-info {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    z-index: 3;
+    backdrop-filter: blur(6px);
+}
+
+.bulb-icon {
+    margin-right: 0.75rem;
+    color: var(--orange-color);
+    font-size: 1.125rem;
+}
+
+.drawing-panel {
+    background-color: white;
+    padding: 2rem;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    margin-bottom: 1.5rem;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    /* max-width: 450px; */
+    margin: 0 auto 1.5rem;
+    height: 100%;
+}
+
+.draw-first-sec {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.drawing-instructions {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-weight: 500;
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    flex-direction: column;
+}
+
+.drawing-instructions i {
+    color: var(--primary-color);
+    font-size: 2.25rem;
+    background-color: var(--primary-color-light);
+    padding: 1.5rem;
+    border-radius: 50%;
+}
+
+.drawing-instructions.highlight {
+    color: var(--primary-color);
+    font-weight: 600;
+    transform: scale(1.02);
+    transition: all 0.3s ease;
+}
+
+#canvas-screenshot-container img{
+    max-width: 100%;
+    border-radius: var(--border-radius-sm);
+}
+
+/* Address search styling */
+.address-search {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem 0 1.5rem;
+    width: 100%;
+    position: relative;
+    max-width: 500px;
+}
+
+#address-input {
+    flex: 1;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    box-shadow: var(--shadow-sm);
+    color: var(--text-color);
+    background-color: #fff;
+    letter-spacing: 0.01em;
+    position: relative;
+    z-index: 100;
+}
+
+#address-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(48, 57, 73, 0.12);
+}
+
+#address-input::placeholder {
+    color: var(--text-light);
+    opacity: 0.8;
+}
+
+/* Adjust the search button */
+.address-search .primary-btn {
+    white-space: nowrap;
+    min-width: auto;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+}
+
+/* Google Places autocomplete customization */
+.pac-container {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e0e0e0;
+    margin-top: 5px;
+    font-family: 'Inter', sans-serif;
+    z-index: 1000 !important;
+}
+
+.pac-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1.5;
+    border-top: 1px solid #f0f0f0;
+}
+
+.pac-item:first-child {
+    border-top: none;
+}
+
+.pac-item:hover {
+    background-color: #f5f5f5;
+}
+
+.pac-item-query {
+    font-size: 14px;
+    color: #333;
+}
+
+.pac-matched {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.draw-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.draw-status {
+    text-align: center;
+    padding: 1.5rem;
+    display: none;
+    animation: fadeIn 0.3s ease;
+    width: 100%;
+}
+
+.success-icon, .check-icon {
+    color: green;
+    font-size: 2.25rem;
+    background-color: var(--primary-color-light);
+    padding: 1.5rem;
+    border-radius: 50%;
+    width: 84px;
+    height: 84px;
+    margin: 0 auto 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.success-icon i, .check-icon i {
+    font-size: 2rem;
+}
+
+.status-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.primary-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    padding: 0.875rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: var(--shadow-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 120px;
+}
+
+.primary-btn:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.primary-btn:disabled {
+    background-color: #a5b4fc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.primary-btn i {
+    font-size: 0.95rem;
+}
+
+.secondary-btn {
+    background-color: white;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 0.875rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: var(--shadow-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 120px;
+}
+
+.secondary-btn:hover {
+    background-color: var(--light-gray);
+    border-color: var(--text-light);
+    transform: translateY(-2px);
+}
+
+.secondary-btn i {
+    font-size: 0.95rem;
+}
+
+/* Modern card-based roof summary section */
+.roof-summary {
+    background-color: white;
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 1.5rem;
+    margin: 0 auto 1.5rem;
+    height: 100%;
+}
+
+.summary-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.summary-header h3 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+}
+
+.summary-header p {
+    color: var(--text-light);
+    font-size: 1rem;
+}
+
+/* Roof item with blue border */
+.roof-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 20px;
+    border-radius: var(--border-radius-md);
+    background-color: var(--light-gray);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s;
+}
+
+/* Roof number styling - large circle with number */
+.roof-number {
+    font-size: 2rem;
+    text-align: center;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin: 1.25rem;
+    /* min-width: 40px; */
+}
+
+/* Grid layout for roof info */
+.roof-details {
+    padding: 0;
+}
+
+.roof-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    /* padding: 1rem 1.25rem; */
+}
+
+.roof-info {
+    padding: 0.5rem;
+}
+
+.roof-label {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.roof-label i {
+    color: var(--text-light);
+    font-size: 13px;
+}
+
+
+.roof-value {
+    /* font-size: 1.25rem; */
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+/* Actions buttons on the right */
+.roof-actions {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+    margin-left: auto;
+    padding-right: 1rem;
+}
+
+.edit-btn, .delete-btn {
+    padding: 0.75rem;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--text-light);
+    transition: all 0.2s;
+    border-radius: 50%;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.edit-btn:hover {
+    background-color: rgba(58, 134, 255, 0.1);
+    color: var(--primary-color);
+}
+
+.delete-btn:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+/* Add another roof button */
+.add-roof-container {
+    margin: 2rem 0;
+    text-align: center;
+}
+
+.outline-btn {
+    background: none;
+    border: 2px dashed var(--border-color);
+    color: var(--text-color);
+    padding: 0.875rem 1rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    width: 100%;
+    max-width: 320px;
+}
+
+/* Your roof layout section */
+.canvas-screenshot {
+    background-color: var(--light-gray);
+    border-radius: var(--border-radius-md);
+    padding: 1.5rem;
+    margin: 2rem 0;
+}
+
+.canvas-screenshot h3 {
+    margin: 0 0 1.25rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#canvas-screenshot-container {
+    background: white;
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+/* Fix for responsive layout */
+@media screen and (max-width: 500px) {
+    .roof-info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Additional styles for the solar potential results panel */
+
+.results-panel {
+    background-color: white;
+    border-radius: var(--border-radius-md);
+    padding: 2rem;
+    margin-top: 2rem;
+    box-shadow: var(--shadow-md);
+}
+
+.results-panel h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-color);
+    text-align: center;
+}
+
+.results-panel h3 {
+    font-size: 1.25rem;
+    margin: 1.75rem 0 1rem;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.result-item {
+    background-color: var(--light-gray);
+    padding: 1.25rem;
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+}
+
+.result-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.result-label {
+    font-size: 0.95rem;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.result-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.layout-preview {
+    margin-top: 1.5rem;
+    background-color: var(--light-gray);
+    padding: 1.5rem;
+    border-radius: var(--border-radius-sm);
+}
+
+#layout-preview-canvas {
+    background-color: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    display: block;
+    margin: 1rem auto 0;
+    max-width: 100%;
+    height: 300px;
+    box-shadow: var(--shadow-sm);
+}
+
+.roof-settings {
+    background-color: var(--light-gray);
+    padding: 1.75rem;
+    border-radius: var(--border-radius-sm);
+    margin-top: 2rem;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.setting-item {
+    margin-bottom: 1.25rem;
+}
+
+.setting-item label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.setting-item select,
+.setting-item input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    background-color: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.setting-item input[type="range"] {
+    padding: 0;
+    box-shadow: none;
+}
+
+.actions-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+}
+
+/* Add styles for the View Solar Potential button */
+#view-solar-potential-btn {
+    margin-left: 1rem;
+}
+
+/* Style for direction text based on azimuth */
+#direction-text {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* Additional styles for the solar potential section */
+
+.solar-potential-section {
+    background-color: var(--light-gray);
+    border-radius: var(--border-radius-md);
+    padding: 1.75rem;
+    margin: 2rem 0;
+    box-shadow: var(--shadow-sm);
+}
+
+.solar-potential-section h3 {
+    font-size: 1.25rem;
+    margin-top: 0;
+    margin-bottom: 1.25rem;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.potential-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.potential-item {
+    background-color: white;
+    padding: 1.25rem;
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+}
+
+.potential-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.potential-label {
+    font-size: 0.95rem;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.potential-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.layout-preview {
+    margin-top: 1.5rem;
+}
+
+#layout-preview-canvas {
+    background-color: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    box-shadow: var(--shadow-sm);
+}
+
+.roof-settings-compact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-top: 1.25rem;
+    justify-content: center;
+}
+
+.roof-settings-compact .setting-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.roof-settings-compact label {
+    font-size: 0.95rem;
+    color: var(--text-color);
+    font-weight: 500;
+    min-width: 140px;
+}
+
+.roof-settings-compact select,
+.roof-settings-compact input {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    background-color: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.roof-settings-compact input[type="range"] {
+    padding: 0;
+    width: 150px;
+    box-shadow: none;
+}
+
+/* Magnifier styles */
+
+#magnifier-map {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+    position: absolute;
+    z-index: 1000;
+    overflow: hidden;
+    pointer-events: none; /* Allow clicks to pass through */
+}
+
+#magnifier-crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1001;
+    pointer-events: none;
+}
+
+#magnifier-crosshair div {
+    position: absolute;
+    background-color: white;
+}
+
+/* Add a connector line from cursor to magnifier */
+.magnifier-connector {
+    position: absolute;
+    border-top: 1px dashed rgba(255, 255, 255, 0.8);
+    width: 30px;
+    transform-origin: 0 0;
+    z-index: 999;
+    pointer-events: none;
+}
+
+.container{
+    display: flex;
+}
+
+/* Media queries for responsive design */
+@media screen and (max-width: 1024px) {
+    .container {
+        flex-direction: column;
+        padding: 1rem;
+    }
+    
+    .map-container-wrapper {
+        height: 600px;
+    }
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    .drawing-panel {
+        padding: 1.5rem;
+    }
+
+    #magnifier-map{
+        display: none !important;
+    }
+    
+    .address-search {
+        flex-direction: column;
+        margin: 0;
+    }
+    
+    .address-search button {
+        width: 100%;
+    }
+    
+    .status-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .magnifier-info, .compass{
+        display: none;
+    }
+    
+    .status-actions button {
+        width: 100%;
+    }
+}
+
+/* Add another roof button styling */
+.outline-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background-color: rgba(58, 134, 255, 0.05);
+    transform: translateY(-2px);
+}
+
+.outline-btn i {
+    font-size: 1rem;
+}
+
+/* Quote actions styling */
+.quote-actions {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.success-message {
+    margin-top: 1.25rem;
+    padding: 1.25rem;
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.95rem;
+    animation: fadeIn 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(10px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+/* Total summary styling */
+.total-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    padding: 1.25rem;
+    background-color: #f3f4f6;
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--border-color);
+}
+
+.total-item {
+    display: flex;
+    justify-content: space-between;
+}
+
+.total-label {
+    font-size: 0.875rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.total-value {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+/* Mobile-specific styles */
+@media screen and (max-width: 768px) {
+
+    .container{
+        gap: 0;
+    }
+
+    #map-container {
+        height: calc(60vh - 60px) !important;
+        width: 100% !important;
+    }
+
+    .map-container-wrapper{
+        min-width: 100%;
+    }
+
+    .address-search {
+        /* position: fixed; */
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.95);
+        z-index: 1000;
+        display: flex;
+        gap: 8px;
+    }
+
+    .address-search input {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .address-search button {
+        white-space: nowrap;
+    }
+
+    #drawing-canvas-container {
+        touch-action: none;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    .pac-container {
+        margin-top: 50px !important;
+        max-width: calc(100% - 20px) !important;
+        left: 10px !important;
+        right: 10px !important;
+    }
+
+    #drawing-instructions,
+    #drawing-instructions-two {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+
+    .compass {
+        bottom: 70px;
+        right: 10px;
+    }
+}
+
+/* Ensure the map container is always full width */
+#map-container {
+    width: 100%;
+    /* height: 100vh; */
+    position: relative;
+    overflow: hidden;
+}
+
+/* Ensure the canvas container matches the map size */
+#drawing-canvas-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: auto;
+}
+
+/* Make sure the canvas itself fills its container */
+#drawing-canvas {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Solar Panel Roof Drawing</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <!-- Add Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="main-roof-left-section">
+            <div class="drawing-panel" id="drawing-panel">
+                <div class="draw-first-sec">
+                    <div class="drawing-instructions" id="drawing-instructions">
+                        <i class="fas fa-search"></i> Search your address to begin
+                    </div>
+                    <div class="address-search">
+                        <input type="text" 
+                            id="address-input" 
+                            placeholder="Enter UK postcode (e.g., SW1A 1AA)" 
+                            autocomplete="off">
+                        <button id="search-address-btn" class="primary-btn">
+                            <i class="fas fa-search"></i>
+                            Search
+                        </button>
+                    </div>
+                    
+                    <div class="draw-actions">
+                        <button id="next-btn" class="primary-btn" style="display: none;"><i class="fas fa-arrow-right"></i> Next</button>
+                        <button id="clear-btn" class="secondary-btn" style="display: none;"><i class="fas fa-trash"></i> Clear</button>
+                    </div>
+                </div>
+
+                <div class="draw-status" style="display: none;">
+                    <div class="success-icon"><i class="fas fa-check"></i></div>
+                    <h3>Roof drawn!</h3>
+                    <div style="display: none;" class="drawing-instructions" id="drawing-instructions-two">
+                        <i class="fas fa-search"></i> Search your address to begin
+                    </div>
+                    <p>Click done if you're happy with the outline. If not, you can re-draw it</p>
+                    <div class="status-actions">
+                        <button id="done-btn" class="primary-btn" disabled><i class="fas fa-check"></i> Done</button>
+                        <button id="clear-btn-two" class="secondary-btn"><i class="fas fa-trash"></i> Clear</button>
+                        <button id="add-roof-btn" class="secondary-btn" disabled><i class="fas fa-plus"></i> Add another roof</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="roof-summary" style="display: none;">
+                <div class="summary-header">
+                    <div class="check-icon"><i class="fas fa-check"></i></div>
+                    <h3>Perfect!</h3>
+                    <p>It looks like this roof is suitable for solar</p>
+                </div>
+                
+                <div class="roof-details">
+                    <!-- Roof details will be populated dynamically -->
+                </div>
+
+                 
+                <div class="add-roof-container">
+                    <button id="add-3rd-roof" class="outline-btn">
+                        <i class="fas fa-plus"></i> Add another roof space
+                    </button>
+                </div>
+                
+                <div class="total-summary">
+                    <div class="total-item">
+                        <div class="total-label"><i class="fas fa-ruler-combined"></i> Total roof area</div>
+                        <div class="total-value"><span id="total-area">0</span> m²</div>
+                    </div>
+                    <div class="total-item">
+                        <div class="total-label"><i class="fas fa-solar-panel"></i> Total suitable for</div>
+                        <div class="total-value"><span id="total-panels">0</span> panels</div>
+                    </div>
+                </div>
+                
+                <div class="canvas-screenshot">
+                    <h3><i class="fas fa-home"></i> Your Roof Layout</h3>
+                    <div id="canvas-screenshot-container">
+                        <!-- Screenshot will be displayed here -->
+                    </div>
+                </div>
+                
+                
+                
+                <!-- Solar Potential Details -->
+                <div class="solar-potential-section" style="display: none;">
+                    <h3><i class="fas fa-sun"></i> Solar Potential</h3>
+                    <div id="solar-potential-details" class="potential-details-grid">
+                        <!-- Solar potential details will be populated dynamically -->
+                    </div>
+                </div>
+               
+
+                <div class="quote-actions" style="display: none;">
+                    <button id="get-quote-btn" class="primary-btn"><i class="fas fa-tag"></i> Get your fixed price</button>
+                    <div id="quote-success" class="success-message" style="display: none;">
+                        <i class="fas fa-check-circle"></i> Thank you! Your quote request has been submitted. We'll contact you shortly.
+                    </div>
+                </div>
+                
+               
+            </div>
+        </div>
+
+        <div class="map-container-wrapper">
+            <div id="map-container">
+                <!-- Google Maps will be loaded here -->
+            </div>
+            
+            <div id="drawing-canvas-container">
+                <canvas id="drawing-canvas"></canvas>
+            </div>
+            
+            <div class="compass">
+                <div class="direction n">N</div>
+                <div class="direction e">E</div>
+                <div class="direction s">S</div>
+                <div class="direction w">W</div>
+            </div>
+            
+            <div class="magnifier-info">
+                <div class="bulb-icon"><i class="fas fa-lightbulb"></i></div>
+                <p>You can click and drag a corner to fine tune</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Scripts -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="config.js"></script>
+    <script src="map-handler.js"></script>
+    <script src="drawing-handler.js"></script>
+    <script src="solar-calculator.js"></script>
+    <script src="roof-manager.js"></script>
+    <script src="app.js"></script>
+    <!-- Add Google Places API for address autocomplete -->
+    <script>
+        let autocomplete;
+        
+        function initAutocomplete() {
+            const input = document.getElementById('address-input');
+            const searchButton = document.getElementById('search-address-btn');
+            
+            // Create the autocomplete object
+            autocomplete = new google.maps.places.Autocomplete(input, {
+                componentRestrictions: { country: 'gb' },
+                types: ['geocode'],
+                fields: ['address_components', 'geometry', 'formatted_address']
+            });
+
+            // Handle keyboard navigation
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchButton.click();
+                }
+            });
+
+            // When a place is selected from dropdown
+            autocomplete.addListener('place_changed', function() {
+                const place = autocomplete.getPlace();
+                if (place && place.geometry) {
+                    // Update the map view
+                    if (window.map) {
+                        window.map.setCenter({ 
+                            lat: place.geometry.location.lat(),
+                            lng: place.geometry.location.lng()
+                        });
+                        window.map.setZoom(20);  // Zoom in to show the building
+                    }
+                    // Trigger the search button click
+                    searchButton.click();
+                }
+            });
+        }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC7QveAHt4G4u1p0LjKBPaJl1LPUJgcEDU&libraries=places&callback=initAutocomplete" async defer></script>
+</body>
+</html>
