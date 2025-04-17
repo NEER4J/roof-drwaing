@@ -56,9 +56,20 @@ function setupEventListeners() {
     // Submit button
     const submitBtn = document.getElementById('submit-roofs');
     if (submitBtn) {
-        submitBtn.addEventListener('click', function() {
-            // You can add any data collection or validation here before redirecting
-            window.location.href = '/thank-you';
+        submitBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            submitBtn.style.display = 'none';
+            // Create or show a success message
+            let successMsg = document.getElementById('submit-success-message');
+            if (!successMsg) {
+                successMsg = document.createElement('div');
+                successMsg.id = 'submit-success-message';
+                successMsg.className = 'success-message';
+                successMsg.innerHTML = '<i class="fas fa-check-circle"></i> Thank you! Your submission was successful.';
+                submitBtn.parentNode.appendChild(successMsg);
+            } else {
+                successMsg.style.display = 'flex';
+            }
         });
     }
     

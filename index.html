@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="main-app-container">
         <div class="main-roof-left-section">
             <div class="drawing-panel" id="drawing-panel">
                 <div class="draw-first-sec">
@@ -170,6 +170,20 @@
                 <div class="bulb-icon"><i class="fas fa-lightbulb"></i></div>
                 <p>You can click and drag a corner to fine tune</p>
             </div>
+        </div>
+    </div>
+
+    <!-- Success Page (hidden by default) -->
+    <div id="success-page" style="display:none; min-height: 80vh; align-items: center; justify-content: center; flex-direction: column; text-align: center;">
+        <div style="margin-top: 80px;">
+            <div class="success-icon" style="margin: 0 auto 1.5rem;">
+                <i class="fas fa-check-circle" style="font-size: 3rem; color: var(--success-color, #10b981);"></i>
+            </div>
+            <h2 style="font-size: 2rem; margin-bottom: 1rem;">Thank you for your submission!</h2>
+            <p style="font-size: 1.15rem; color: #555; margin-bottom: 2.5rem;">We’ve received your roof drawing and details.<br>Our team will contact you soon with your fixed price quote.</p>
+            <button id="start-again-btn" class="primary-btn" style="font-size: 1.1rem; padding: 1rem 2.5rem;">
+                <i class="fas fa-redo"></i> Start Again
+            </button>
         </div>
     </div>
 
